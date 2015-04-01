@@ -2,7 +2,6 @@ package com.ultimasquare.pinview;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.graphics.Typeface;
 import android.os.AsyncTask;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -12,7 +11,12 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-public class PinEntryView extends LinearLayout implements View.OnClickListener{
+import butterknife.ButterKnife;
+import butterknife.InjectView;
+import butterknife.InjectViews;
+import butterknife.OnClick;
+
+public class PinEntryView extends LinearLayout {
 
     private String userEntered;
     private String userPin;
@@ -20,9 +24,9 @@ public class PinEntryView extends LinearLayout implements View.OnClickListener{
     private final int PIN_LENGTH = 4;
     private boolean keyPadLockedFlag = false;
 
-    private TextView[] pinBoxArray;
+    @InjectView(R.id.statusMessage) TextView statusView;
+    @InjectViews({ R.id.pinBox0, R.id.pinBox1, R.id.pinBox2, R.id.pinBox3 }) TextView[] pinBoxArray;
 
-    private TextView statusView;
     private Listener mListener;
 
     public interface Listener {
@@ -33,107 +37,33 @@ public class PinEntryView extends LinearLayout implements View.OnClickListener{
         super(context, attrs);
 
         LayoutInflater.from(getContext()).inflate(R.layout.view_pin_entry, this, true);
-
-        if (!isInEditMode()) {
-            initViews();
-        }
+        ButterKnife.inject(this, this);
     }
 
     public void init(String userPin, Listener listener) {
         this.userPin = userPin;
         this.mListener = listener;
-    }
-
-    private void initViews() {
         userEntered = "";
-
-        Typeface xpressive = Typeface.createFromAsset(getContext().getAssets(), "fonts/XpressiveBold.ttf");
-
-        Button buttonExit = (Button) findViewById(R.id.buttonExit);
-        buttonExit.setTypeface(xpressive);
-        buttonExit.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finish();
-            }
-        });
-
-        pinBoxArray = new TextView[PIN_LENGTH];
-        pinBoxArray[0] = (TextView) findViewById(R.id.pinBox0);
-        pinBoxArray[1] = (TextView) findViewById(R.id.pinBox1);
-        pinBoxArray[2] = (TextView) findViewById(R.id.pinBox2);
-        pinBoxArray[3] = (TextView) findViewById(R.id.pinBox3);
-
-
-        statusView = (TextView) findViewById(R.id.statusMessage);
-        statusView.setTypeface(xpressive);
-
-        Button button0 = (Button) findViewById(R.id.button0);
-        button0.setTypeface(xpressive);
-        button0.setOnClickListener(this);
-
-        Button button1 = (Button) findViewById(R.id.button1);
-        button1.setTypeface(xpressive);
-        button1.setOnClickListener(this);
-
-        Button button2 = (Button) findViewById(R.id.button2);
-        button2.setTypeface(xpressive);
-        button2.setOnClickListener(this);
-
-        Button button3 = (Button) findViewById(R.id.button3);
-        button3.setTypeface(xpressive);
-        button3.setOnClickListener(this);
-
-        Button button4 = (Button) findViewById(R.id.button4);
-        button4.setTypeface(xpressive);
-        button4.setOnClickListener(this);
-
-        Button button5 = (Button) findViewById(R.id.button5);
-        button5.setTypeface(xpressive);
-        button5.setOnClickListener(this);
-
-        Button button6 = (Button) findViewById(R.id.button6);
-        button6.setTypeface(xpressive);
-        button6.setOnClickListener(this);
-
-        Button button7 = (Button) findViewById(R.id.button7);
-        button7.setTypeface(xpressive);
-        button7.setOnClickListener(this);
-
-        Button button8 = (Button) findViewById(R.id.button8);
-        button8.setTypeface(xpressive);
-        button8.setOnClickListener(this);
-
-        Button button9 = (Button) findViewById(R.id.button9);
-        button9.setTypeface(xpressive);
-        button9.setOnClickListener(this);
-
-        Button buttonDelete = (Button) findViewById(R.id.buttonDeleteBack);
-        buttonDelete.setTypeface(xpressive);
-        buttonDelete.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (keyPadLockedFlag) {
-                    return;
-                }
-
-                if (userEntered.length() > 0) {
-                    userEntered = userEntered.substring(0, userEntered.length() - 1);
-                    pinBoxArray[userEntered.length()].setText("");
-                }
-            }
-        });
     }
 
-    @Override
-    public void onClick(View v) {
-
+    @OnClick(R.id.buttonDeleteBack)
+    public void onDeleteClick(View v) {
         if (keyPadLockedFlag) {
             return;
         }
 
-        Button pressedButton = (Button) v;
+        if (userEntered.length() > 0) {
+            userEntered = userEntered.substring(0, userEntered.length() - 1);
+            pinBoxArray[userEntered.length()].setText("");
+        }
+    }
 
+    @OnClick({R.id.button0, R.id.button1, R.id.button2, R.id.button3, R.id.button4, R.id.button5, R.id.button6, R.id.button7, R.id.button8, R.id.button9})
+    public void onNumberClick(Button pressedButton) {
+
+        if (keyPadLockedFlag) {
+            return;
+        }
 
         if (userEntered.length() < PIN_LENGTH) {
             userEntered = userEntered + pressedButton.getText();
@@ -158,7 +88,8 @@ public class PinEntryView extends LinearLayout implements View.OnClickListener{
                     new LockKeyPadOperation().execute("");
                 }
             }
-        } else {
+        }
+        else {
             //Roll over
             pinBoxArray[0].setText("");
             pinBoxArray[1].setText("");
@@ -174,11 +105,11 @@ public class PinEntryView extends LinearLayout implements View.OnClickListener{
 
             //Update pin boxes
             pinBoxArray[userEntered.length() - 1].setText("*");
-
         }
     }
 
-    private void finish() {
+    @OnClick(R.id.buttonExit)
+    public void finish() {
         if (mListener != null) {
             mListener.onFinish();
         }
