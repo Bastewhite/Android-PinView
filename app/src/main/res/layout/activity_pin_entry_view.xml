@@ -1,8 +1,9 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 xmlns:tools="http://schemas.android.com/tools"
+                android:id="@+id/container"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="@drawable/pinstripe_repeating"
+                tools:background="@android:color/black"
                 tools:context=".PinEntryView">
 
     <TextView
@@ -16,7 +17,7 @@
         android:textColor="#ffffff"
         android:textSize="30sp"/>
 
-    <com.ultimasquare.pinview.PinEntryView
+    <com.ultimasquare.pinview.PinCheckerView
         android:id="@+id/pinEntryView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

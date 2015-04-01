@@ -4,7 +4,9 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
+
+import butterknife.ButterKnife;
+import butterknife.OnClick;
 
 public class PinProtectedActivity extends Activity {
 
@@ -13,12 +15,16 @@ public class PinProtectedActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pin_protected_activity);
 
-        Button enterPin = (Button) findViewById(R.id.buttonEnterPin);
-        enterPin.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(PinProtectedActivity.this, PinEntryViewActivity.class));
-            }
-        });
+        ButterKnife.inject(this);
+    }
+
+    @OnClick(R.id.buttonEnterPin)
+    public void onClick(View v) {
+        startActivity(new Intent(PinProtectedActivity.this, PinCheckerActivity.class));
+    }
+
+    @OnClick(R.id.buttonEnterPin2)
+    public void onClick2(View v) {
+        new PinCheckerDialog(PinProtectedActivity.this, getWindow().getDecorView().findViewById(android.R.id.content)).show();
     }
 }

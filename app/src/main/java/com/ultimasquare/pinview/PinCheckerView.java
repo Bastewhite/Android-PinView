@@ -16,7 +16,7 @@ import butterknife.InjectView;
 import butterknife.InjectViews;
 import butterknife.OnClick;
 
-public class PinEntryView extends LinearLayout {
+public class PinCheckerView extends LinearLayout {
 
     private String userEntered;
     private String userPin;
@@ -33,7 +33,7 @@ public class PinEntryView extends LinearLayout {
         void onFinish();
     }
 
-    public PinEntryView(Context context, AttributeSet attrs) {
+    public PinCheckerView(Context context, AttributeSet attrs) {
         super(context, attrs);
 
         LayoutInflater.from(getContext()).inflate(R.layout.view_pin_entry, this, true);
