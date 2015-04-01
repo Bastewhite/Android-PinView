@@ -1,73 +1,62 @@
 package com.ultimasquare.pinview;
 
-/*Client ID: 	381130279932.apps.googleusercontent.com
-Redirect URIs: 	urn:ietf:wg:oauth:2.0:oob http://localhost
-Application type: 	Android
-Package name: 	com.ultimasquare.pinview
-Certificate fingerprint (SHA1): 	86:F2:4D:FD:34:98:BF:0C:47:94:34:D4:8C:68:A3:84:B7:D7:B2:0F
-Deep Linking: 	Disabled*/
-
-
-import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.AsyncTask;
-import android.os.Bundle;
+import android.util.AttributeSet;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
-public class PinEntryView extends Activity implements View.OnClickListener{
+public class PinEntryView extends LinearLayout implements View.OnClickListener{
 
     private String userEntered;
-    private final String userPin = "8888";
+    private String userPin;
 
     private final int PIN_LENGTH = 4;
     private boolean keyPadLockedFlag = false;
-    private Context appContext;
 
     private TextView[] pinBoxArray;
 
     private TextView statusView;
+    private Listener mListener;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    public interface Listener {
+        void onFinish();
+    }
 
-        appContext = this;
+    public PinEntryView(Context context, AttributeSet attrs) {
+        super(context, attrs);
+
+        LayoutInflater.from(getContext()).inflate(R.layout.view_pin_entry, this, true);
+
+        if (!isInEditMode()) {
+            initViews();
+        }
+    }
+
+    public void init(String userPin, Listener listener) {
+        this.userPin = userPin;
+        this.mListener = listener;
+    }
+
+    private void initViews() {
         userEntered = "";
 
-//        requestWindowFeature(Window.FEATURE_NO_TITLE);
-//        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-//                WindowManager.LayoutParams.FLAG_FULLSCREEN);
-
-        setContentView(R.layout.activity_pin_entry_view);
-
-        Typeface xpressive = Typeface.createFromAsset(getAssets(), "fonts/XpressiveBold.ttf");
+        Typeface xpressive = Typeface.createFromAsset(getContext().getAssets(), "fonts/XpressiveBold.ttf");
 
         Button buttonExit = (Button) findViewById(R.id.buttonExit);
         buttonExit.setTypeface(xpressive);
-        buttonExit.setOnClickListener(new View.OnClickListener() {
-                                          public void onClick(View v) {
-
-                                              //Exit app
-                                              Intent i = new Intent();
-                                              i.setAction(Intent.ACTION_MAIN);
-                                              i.addCategory(Intent.CATEGORY_HOME);
-                                              appContext.startActivity(i);
-                                              finish();
-
-                                          }
-
-                                      }
-        );
-
-
-        TextView titleView = (TextView) findViewById(R.id.titleBox);
-        titleView.setTypeface(xpressive);
+        buttonExit.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
 
         pinBoxArray = new TextView[PIN_LENGTH];
         pinBoxArray[0] = (TextView) findViewById(R.id.pinBox0);
@@ -137,12 +126,6 @@ public class PinEntryView extends Activity implements View.OnClickListener{
     }
 
     @Override
-    public void onBackPressed() {
-        //App not allowed to go back to Parent activity until correct pin entered.
-        //super.onBackPressed();
-    }
-
-    @Override
     public void onClick(View v) {
 
         if (keyPadLockedFlag) {
@@ -195,6 +178,12 @@ public class PinEntryView extends Activity implements View.OnClickListener{
         }
     }
 
+    private void finish() {
+        if (mListener != null) {
+            mListener.onFinish();
+        }
+    }
+
     private class LockKeyPadOperation extends AsyncTask<String, Void, String> {
 
         @Override
@@ -203,7 +192,6 @@ public class PinEntryView extends Activity implements View.OnClickListener{
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
-                    // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
             }
