@@ -1,15 +1,19 @@
 package com.ultimasquare.pinview;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.os.AsyncTask;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.Button;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.TextView;
+
+import com.github.orangegangsters.lollipin.lib.views.KeyboardButtonView;
+
+import java.util.List;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -21,11 +25,11 @@ public class PinCheckerView extends LinearLayout {
     private String userEntered;
     private String userPin;
 
-    private final int PIN_LENGTH = 4;
+    private static final int PIN_LENGTH = 4;
     private boolean keyPadLockedFlag = false;
 
-    @InjectView(R.id.statusMessage) TextView statusView;
-    @InjectViews({ R.id.pinBox0, R.id.pinBox1, R.id.pinBox2, R.id.pinBox3 }) TextView[] pinBoxArray;
+    @InjectViews({ R.id.pin_code_round1, R.id.pin_code_round2, R.id.pin_code_round3, R.id.pin_code_round4 }) List<ImageView> mRoundViews;
+    @InjectView(R.id.view_keyboard) View mKeyboardView;
 
     private Listener mListener;
 
@@ -33,9 +37,21 @@ public class PinCheckerView extends LinearLayout {
         void onFinish();
     }
 
-    public PinCheckerView(Context context, AttributeSet attrs) {
-        super(context, attrs);
+    public PinCheckerView(Context context) {
+        this(context, null);
+    }
 
+    public PinCheckerView(Context context, AttributeSet attrs) {
+        this(context, attrs, 0);
+    }
+
+    public PinCheckerView(Context context, AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+
+        initializeView(attrs, defStyleAttr);
+    }
+
+    private void initializeView(AttributeSet attrs, int defStyleAttr) {
         LayoutInflater.from(getContext()).inflate(R.layout.view_pin_entry, this, true);
         ButterKnife.inject(this, this);
     }
@@ -46,7 +62,7 @@ public class PinCheckerView extends LinearLayout {
         userEntered = "";
     }
 
-    @OnClick(R.id.buttonDeleteBack)
+    @OnClick(R.id.pin_code_button_clear)
     public void onDeleteClick(View v) {
         if (keyPadLockedFlag) {
             return;
@@ -54,12 +70,13 @@ public class PinCheckerView extends LinearLayout {
 
         if (userEntered.length() > 0) {
             userEntered = userEntered.substring(0, userEntered.length() - 1);
-            pinBoxArray[userEntered.length()].setText("");
+            refreshPinCodeRound(userEntered.length());
         }
     }
 
-    @OnClick({R.id.button0, R.id.button1, R.id.button2, R.id.button3, R.id.button4, R.id.button5, R.id.button6, R.id.button7, R.id.button8, R.id.button9})
-    public void onNumberClick(Button pressedButton) {
+    @OnClick({R.id.pin_code_button_0, R.id.pin_code_button_1, R.id.pin_code_button_2, R.id.pin_code_button_3,
+            R.id.pin_code_button_4, R.id.pin_code_button_5, R.id.pin_code_button_6, R.id.pin_code_button_7, R.id.pin_code_button_8, R.id.pin_code_button_9})
+    public void onNumberClick(KeyboardButtonView pressedButton) {
 
         if (keyPadLockedFlag) {
             return;
@@ -70,48 +87,61 @@ public class PinCheckerView extends LinearLayout {
             Log.v("PinView", "User entered=" + userEntered);
 
             //Update pin boxes
-            pinBoxArray[userEntered.length() - 1].setText("*");
+            refreshPinCodeRound(userEntered.length());
 
             if (userEntered.length() == PIN_LENGTH) {
                 //Check if entered PIN is correct
                 if (userEntered.equals(userPin)) {
-                    statusView.setTextColor(Color.GREEN);
-                    statusView.setText("Correct");
                     Log.v("PinView", "Correct PIN");
                     finish();
                 } else {
-                    statusView.setTextColor(Color.RED);
-                    statusView.setText("Wrong PIN. Keypad Locked");
-                    keyPadLockedFlag = true;
-                    Log.v("PinView", "Wrong PIN");
-
-                    new LockKeyPadOperation().execute("");
+                    onPinCodeError();
                 }
             }
         }
         else {
-            //Roll over
-            pinBoxArray[0].setText("");
-            pinBoxArray[1].setText("");
-            pinBoxArray[2].setText("");
-            pinBoxArray[3].setText("");
-
             userEntered = "";
-
-            statusView.setText("");
 
             userEntered = userEntered + pressedButton.getText();
             Log.v("PinView", "User entered=" + userEntered);
 
             //Update pin boxes
-            pinBoxArray[userEntered.length() - 1].setText("*");
+            refreshPinCodeRound(userEntered.length());
         }
     }
 
-    @OnClick(R.id.buttonExit)
+    @OnClick(R.id.pin_code_button_10)
     public void finish() {
         if (mListener != null) {
             mListener.onFinish();
+        }
+    }
+
+    /**
+     * Run a shake animation when the password is not valid.
+     */
+    protected void onPinCodeError() {
+        Animation animation = AnimationUtils.loadAnimation(getContext(), R.anim.shake);
+        mKeyboardView.startAnimation(animation);
+
+        keyPadLockedFlag = true;
+        Log.v("PinView", "Wrong PIN");
+
+        new LockKeyPadOperation().execute("");
+    }
+
+    /**
+     * Refresh the {@link android.widget.ImageView}s to look like what typed the user
+     *
+     * @param pinLength the current pin code length typed by the user
+     */
+    public void refreshPinCodeRound(int pinLength) {
+        for (int i = 0; i < mRoundViews.size(); i++) {
+            if (pinLength - 1 >= i) {
+                mRoundViews.get(i).setBackgroundResource(R.drawable.pin_code_round_full);
+            } else {
+                mRoundViews.get(i).setBackgroundResource(R.drawable.pin_code_round_empty);
+            }
         }
     }
 
@@ -132,13 +162,8 @@ public class PinCheckerView extends LinearLayout {
 
         @Override
         protected void onPostExecute(String result) {
-            statusView.setText("");
-
             //Roll over
-            pinBoxArray[0].setText("");
-            pinBoxArray[1].setText("");
-            pinBoxArray[2].setText("");
-            pinBoxArray[3].setText("");
+            refreshPinCodeRound(0);
 
             userEntered = "";
 

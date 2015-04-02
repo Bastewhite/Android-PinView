@@ -1,26 +1,15 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                xmlns:tools="http://schemas.android.com/tools"
-                android:id="@+id/container"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                tools:background="@android:color/black"
-                tools:context=".PinEntryView">
-
-    <TextView
-        android:id="@+id/titleBox"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:gravity="center"
-        android:padding="10dip"
-        android:text="Enter PIN"
-        android:textColor="#ffffff"
-        android:textSize="30sp"/>
+<LinearLayout
+    android:id="@+id/container"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/black"
+    android:gravity="center"
+    android:orientation="vertical">
 
     <com.ultimasquare.pinview.PinCheckerView
         android:id="@+id/pinEntryView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_centerVertical="true"
         android:orientation="vertical"/>
-</RelativeLayout>
+</LinearLayout>

@@ -21,4 +21,5 @@ android {
 dependencies {
 //    compile 'com.android.support:support-v4:18.0.0'
     compile 'com.jakewharton:butterknife:6.1.0'
+    compile 'com.github.traex.rippleeffect:library:1.2.4'
 }
